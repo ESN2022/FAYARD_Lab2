@@ -1,29 +1,73 @@
 #include <system.h>
 #include <altera_avalon_pio_regs.h>
+#include <sys/alt_irq.h>
+#include <sys/alt_sys_init.h>
+#include <alt_types.h>
+#include <altera_avalon_timer_regs.h>
+#include <altera_avalon_timer.h>
+#include <unistd.h>
+#include <sys/alt_stdio.h>
 
-int count_manual = 0;
+
+int count = 0;
+int irq = 0;
 int c0 = 0, c1 = 0, c2 = 0;
 int send;
 
+static void timer_ISR (void * context, alt_u32 id)
+{
+    alt_printf ("%x  ",IORD_ALTERA_AVALON_TIMER_STATUS(TIMER_0_BASE));
+
+    //Counter
+    if (count < 999){
+        count = count + 1;
+    }
+    else {
+        count = 0;
+    }
+
+    //Irq flag raised
+    irq = 1;
+
+	//Clear the interrupt
+	IOWR_ALTERA_AVALON_TIMER_STATUS(TIMER_0_BASE, 0x00);
+	alt_printf ("%x\n",IORD_ALTERA_AVALON_TIMER_STATUS(TIMER_0_BASE));
+}
+
 int main(int argc, char *argv[])
 {
+    //Make sure the counter is stopped
+    //IOWR_ALTERA_AVALON_TIMER_CONTROL(TIMER_0_BASE, ALTERA_AVALON_TIMER_CONTROL_STOP_MSK);
+
+    //Clear the interrupt
+	IOWR_ALTERA_AVALON_TIMER_STATUS(TIMER_0_BASE, 0x00);
+
+	//Set period
+	//IOWR_ALTERA_AVALON_TIMER_PERIODL(TIMER_0_BASE, 2);
+	//IOWR_ALTERA_AVALON_TIMER_PERIODH(TIMER_0_BASE, 0);
+
+	//Continuous count
+	IOWR_ALTERA_AVALON_TIMER_CONTROL(TIMER_0_BASE , ALTERA_AVALON_TIMER_CONTROL_CONT_MSK || ALTERA_AVALON_TIMER_CONTROL_START_MSK || ALTERA_AVALON_TIMER_CONTROL_ITO_MSK);
+
+	//Register the ISR to the corresponding interrupt
+	alt_irq_register (TIMER_0_IRQ , NULL, (void*) timer_ISR);
+
     while(1){
-        if (count_manual < 999){
-            count_manual = count_manual + 1;
+        //If a change occured
+        if (irq == 1){
+            c2 = count / 100;
+            c1 = (count /10) % 10;
+            c0 = count % 10;
+
+            send = (c2 << 8) + (c1 <<4) + c0;
+
+            //Write the number on the 7 segment
+            IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE,send);
+            usleep(100000);
+
+            //Irq flag down
+            irq = 0;
         }
-        else {
-            count_manual = 0;
-        }
-
-        c2 = count_manual / 100;
-        c1 = (count_manual /10) % 10;
-        c0 = count_manual % 10;
-
-        send = (c2 << 8) + (c1 <<4) + c0;
-
-        //Write the number on the 7 segment
-        IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE,send);
-        usleep(100000);
 	}
 
     return 0;
