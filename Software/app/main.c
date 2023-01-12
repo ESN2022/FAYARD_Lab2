@@ -16,8 +16,6 @@ int send;
 
 static void timer_ISR (void * context, alt_u32 id)
 {
-    alt_printf ("%x  ",IORD_ALTERA_AVALON_TIMER_STATUS(TIMER_0_BASE));
-
     //Counter
     if (count < 999){
         count = count + 1;
@@ -31,23 +29,15 @@ static void timer_ISR (void * context, alt_u32 id)
 
 	//Clear the interrupt
 	IOWR_ALTERA_AVALON_TIMER_STATUS(TIMER_0_BASE, 0x00);
-	alt_printf ("%x\n",IORD_ALTERA_AVALON_TIMER_STATUS(TIMER_0_BASE));
 }
 
 int main(int argc, char *argv[])
 {
-    //Make sure the counter is stopped
-    //IOWR_ALTERA_AVALON_TIMER_CONTROL(TIMER_0_BASE, ALTERA_AVALON_TIMER_CONTROL_STOP_MSK);
-
     //Clear the interrupt
 	IOWR_ALTERA_AVALON_TIMER_STATUS(TIMER_0_BASE, 0x00);
 
-	//Set period
-	//IOWR_ALTERA_AVALON_TIMER_PERIODL(TIMER_0_BASE, 2);
-	//IOWR_ALTERA_AVALON_TIMER_PERIODH(TIMER_0_BASE, 0);
-
-	//Continuous count
-	IOWR_ALTERA_AVALON_TIMER_CONTROL(TIMER_0_BASE , ALTERA_AVALON_TIMER_CONTROL_CONT_MSK || ALTERA_AVALON_TIMER_CONTROL_START_MSK || ALTERA_AVALON_TIMER_CONTROL_ITO_MSK);
+	//Settle parameters : continous count, IRQ request + Start
+	IOWR_ALTERA_AVALON_TIMER_CONTROL(TIMER_0_BASE , ALTERA_AVALON_TIMER_CONTROL_CONT_MSK | ALTERA_AVALON_TIMER_CONTROL_START_MSK | ALTERA_AVALON_TIMER_CONTROL_ITO_MSK);
 
 	//Register the ISR to the corresponding interrupt
 	alt_irq_register (TIMER_0_IRQ , NULL, (void*) timer_ISR);
