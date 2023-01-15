@@ -10,7 +10,7 @@ Le système de co-design comprend le softcore NIOS II, de la mémoire de type RA
 
 ![arch_system2](https://user-images.githubusercontent.com/103188608/212013759-371d0173-adbe-4b65-8ab1-e81e0c5300eb.png)
 
-Le décodeur 7-segment est nécessaire pour convertir un nombre binaire en BCD. Ce fichier VHDL correspond à une simple table de vérité. Pour pouvoir compter de 0 à 9 soit 10 chiffres, 4 bits sont nécessaires (23=8 - > X ; 24=16 - > V). Pour gérer les 3 7-segment dont nous avons besoin, chaque 7-segment se voit attribuer 4 bits du PIO qui doit donc avoir 3 x 4 = 12 bits.
+Le décodeur 7-segment est nécessaire pour convertir un nombre binaire en BCD. Ce fichier VHDL correspond à une simple table de vérité. Pour pouvoir compter de 0 à 9 soit 10 chiffres, 4 bits sont nécessaires (2^3=8 - > X ; 2^4=16 - > V). Pour gérer les 3 7-segment dont nous avons besoin, chaque 7-segment se voit attribuer 4 bits du PIO qui doit donc avoir 3 x 4 = 12 bits.
 
 
 <h2>II.	Progression et résultat</h2>
